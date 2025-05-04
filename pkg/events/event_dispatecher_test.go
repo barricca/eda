@@ -85,6 +85,28 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Clear() {
 	suite.Equal(0, len(suite.eventDispatcher.GetHandlers()))
 }
 
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Has() {
+	err := suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
+	assert.NoError(suite.T(), err)
+	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+
+	err = suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler2)
+	assert.NoError(suite.T(), err)
+	suite.Equal(2, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+
+	assert.True(suite.T(), suite.eventDispatcher.Has(suite.event.GetName(), &suite.handler))
+	assert.True(suite.T(), suite.eventDispatcher.Has(suite.event.GetName(), &suite.handler2))
+	assert.False(suite.T(), suite.eventDispatcher.Has(suite.event.GetName(), &suite.handler3))
+
+	assert.False(suite.T(), suite.eventDispatcher.Has(suite.event2.GetName(), &suite.handler))
+	assert.False(suite.T(), suite.eventDispatcher.Has(suite.event2.GetName(), &suite.handler2))
+	assert.False(suite.T(), suite.eventDispatcher.Has(suite.event2.GetName(), &suite.handler3))
+
+	assert.False(suite.T(), suite.eventDispatcher.Has("invalid_event_name", &suite.handler))
+	assert.False(suite.T(), suite.eventDispatcher.Has("invalid_event_name", &suite.handler2))
+	assert.False(suite.T(), suite.eventDispatcher.Has("invalid_event_name", &suite.handler3))
+}
+
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register() {
 	err := suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
 	assert.NoError(suite.T(), err)

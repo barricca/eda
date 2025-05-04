@@ -23,6 +23,17 @@ func (ed *EventDispatcher) GetHandlers() map[string][]EventHandlerInterface {
 	return ed.handlers
 }
 
+func (ed *EventDispatcher) Has(eventName string, handler EventHandlerInterface) bool {
+	if handlers, ok := ed.handlers[eventName]; ok {
+		for _, h := range handlers {
+			if h == handler {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (ed *EventDispatcher) Register(eventName string, handler EventHandlerInterface) error {
 	if _, ok := ed.handlers[eventName]; ok {
 		for _, h := range ed.handlers[eventName] {
