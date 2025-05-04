@@ -19,6 +19,15 @@ func (ed *EventDispatcher) Clear() error {
 	return nil
 }
 
+func (ed *EventDispatcher) Dispatch(event EventInterface) error {
+	if handlers, ok := ed.handlers[event.GetName()]; ok {
+		for _, handler := range handlers {
+			handler.Handle(event)
+		}
+	}
+	return nil
+}
+
 func (ed *EventDispatcher) GetHandlers() map[string][]EventHandlerInterface {
 	return ed.handlers
 }

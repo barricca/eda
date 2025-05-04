@@ -6,6 +6,7 @@ import (
 
 	"github.com/barricca/eda/pkg/events"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -128,6 +129,35 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_AlreadyRegis
 	err = suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
 	assert.Equal(suite.T(), events.ErrorHandlerAlreadyRegistered, err)
 	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+}
+
+type MockEventHandler struct {
+	mock.Mock
+}
+
+func (m *MockEventHandler) Handle(event events.EventInterface) {
+	m.Called(event)
+}
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch() {
+	mockHandler := &MockEventHandler{}
+	mockHandler.On("Handle", &suite.event)
+
+	err := suite.eventDispatcher.Register(suite.event.GetName(), mockHandler)
+	assert.NoError(suite.T(), err)
+
+	suite.eventDispatcher.Dispatch(&suite.event)
+
+	mockHandler.AssertExpectations(suite.T())
+	mockHandler.AssertNumberOfCalls(suite.T(), "Handle", 1)
+
+	assert.Equal(suite.T(), 1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+}
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch_NoHandlers() {
+	err := suite.eventDispatcher.Dispatch(&suite.event)
+	assert.Error(suite.T(), err)
+	assert.Equal(suite.T(), "no handlers registered for event", err.Error())
 }
 
 func TestSuite(t *testing.T) {
