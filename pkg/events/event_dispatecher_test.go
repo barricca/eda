@@ -52,6 +52,39 @@ func (suite *EventDispatcherTestSuite) SetupTest() {
 	suite.handler3 = TestEventHandler{ID: 3}
 }
 
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_GetHandlers() {
+	handlers := suite.eventDispatcher.GetHandlers()
+	assert.NotNil(suite.T(), handlers)
+	assert.Equal(suite.T(), 0, len(handlers))
+
+	suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
+	handlers = suite.eventDispatcher.GetHandlers()
+	assert.Equal(suite.T(), 1, len(handlers))
+	assert.Equal(suite.T(), 1, len(handlers[suite.event.GetName()]))
+	assert.Equal(suite.T(), &suite.handler, handlers[suite.event.GetName()][0])
+}
+
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Clear() {
+	// Event 1
+	err := suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
+	assert.NoError(suite.T(), err)
+	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+
+	// Event 1 with different handler
+	err = suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler2)
+	assert.NoError(suite.T(), err)
+	suite.Equal(2, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+
+	// Event 2
+	err = suite.eventDispatcher.Register(suite.event2.GetName(), &suite.handler2)
+	assert.NoError(suite.T(), err)
+	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event2.GetName()]))
+
+	err = suite.eventDispatcher.Clear()
+	assert.NoError(suite.T(), err)
+	suite.Equal(0, len(suite.eventDispatcher.GetHandlers()))
+}
+
 func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register() {
 	err := suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
 	assert.NoError(suite.T(), err)

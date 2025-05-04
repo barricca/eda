@@ -14,6 +14,11 @@ func NewEventDispatcher() *EventDispatcher {
 	}
 }
 
+func (ed *EventDispatcher) Clear() error {
+	ed.handlers = make(map[string][]EventHandlerInterface)
+	return nil
+}
+
 func (ed *EventDispatcher) GetHandlers() map[string][]EventHandlerInterface {
 	return ed.handlers
 }
