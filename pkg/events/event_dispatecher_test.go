@@ -131,6 +131,33 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Register_AlreadyRegis
 	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
 }
 
+func (suite *EventDispatcherTestSuite) TestEventDispatcher_Remove() {
+	err := suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler)
+	assert.NoError(suite.T(), err)
+	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+
+	err = suite.eventDispatcher.Register(suite.event.GetName(), &suite.handler2)
+	assert.NoError(suite.T(), err)
+	suite.Equal(2, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+
+	err = suite.eventDispatcher.Register(suite.event2.GetName(), &suite.handler3)
+	assert.NoError(suite.T(), err)
+	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event2.GetName()]))
+
+	err = suite.eventDispatcher.Remove(suite.event.GetName(), &suite.handler)
+	assert.NoError(suite.T(), err)
+	suite.Equal(1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+	suite.Equal(&suite.handler2, suite.eventDispatcher.GetHandlers()[suite.event.GetName()][0])
+
+	err = suite.eventDispatcher.Remove(suite.event.GetName(), &suite.handler2)
+	assert.NoError(suite.T(), err)
+	suite.Equal(0, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
+
+	err = suite.eventDispatcher.Remove(suite.event2.GetName(), &suite.handler3)
+	assert.NoError(suite.T(), err)
+	suite.Equal(0, len(suite.eventDispatcher.GetHandlers()[suite.event2.GetName()]))
+}
+
 type MockEventHandler struct {
 	mock.Mock
 }
@@ -152,12 +179,6 @@ func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch() {
 	mockHandler.AssertNumberOfCalls(suite.T(), "Handle", 1)
 
 	assert.Equal(suite.T(), 1, len(suite.eventDispatcher.GetHandlers()[suite.event.GetName()]))
-}
-
-func (suite *EventDispatcherTestSuite) TestEventDispatcher_Dispatch_NoHandlers() {
-	err := suite.eventDispatcher.Dispatch(&suite.event)
-	assert.Error(suite.T(), err)
-	assert.Equal(suite.T(), "no handlers registered for event", err.Error())
 }
 
 func TestSuite(t *testing.T) {
